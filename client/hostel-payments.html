@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NestLedger — Hostel Payments</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root[data-theme="light"] {
+    --bg: #fff5f8;
+    --bg2: #ffffff;
+    --bg3: #fce8f0;
+    --card: #ffffff;
+    --card2: #fdf2f6;
+    --text: #2d1a24;
+    --text2: #7a4a5e;
+    --text3: #b07a90;
+    --pink: #e8608a;
+    --pink2: #f4a0bc;
+    --pink3: #fbdde9;
+    --pink4: #f9edf3;
+    --accent: #c73d6a;
+    --border: rgba(220,140,170,0.25);
+    --border2: rgba(220,140,170,0.5);
+    --shadow: 0 4px 32px rgba(200,80,120,0.08);
+    --shadow2: 0 8px 48px rgba(200,80,120,0.14);
+    --green: #2d8a5e;
+    --green-bg: #e8f7ef;
+    --red: #c73d3d;
+    --red-bg: #fdeaea;
+    --amber: #a66200;
+    --amber-bg: #fff3e0;
+    --overlay: rgba(180,60,100,0.08);
+  }
+  :root[data-theme="dark"] {
+    --bg: #1a0d13;
+    --bg2: #23101a;
+    --bg3: #2d1520;
+    --card: #2a1119;
+    --card2: #331520;
+    --text: #f9edf3;
+    --text2: #e0a8c0;
+    --text3: #b07a90;
+    --pink: #f07aaa;
+    --pink2: #e05080;
+    --pink3: #4a1a2e;
+    --pink4: #3d1228;
+    --accent: #f07aaa;
+    --border: rgba(240,120,170,0.15);
+    --border2: rgba(240,120,170,0.35);
+    --shadow: 0 4px 32px rgba(0,0,0,0.4);
+    --shadow2: 0 8px 48px rgba(0,0,0,0.5);
+    --green: #5ecf96;
+    --green-bg: #0d2e1e;
+    --red: #f07070;
+    --red-bg: #2e0d0d;
+    --amber: #f0b040;
+    --amber-bg: #2a1e00;
+    --overlay: rgba(240,120,170,0.05);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+    overflow-x: hidden;
+  }
+
+  /* ======= LOGIN PAGE ======= */
+  #login-page {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg);
+    z-index: 1000;
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  #login-page.hide {
+    opacity: 0; transform: scale(1.04) translateY(-20px);
+    pointer-events: none;
+  }
+
+  .login-bg-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    animation: blobFloat 6s ease-in-out infinite;
+  }
+  .blob1 { width: 400px; height: 400px; background: #f4a0bc; top: -100px; left: -100px; animation-delay: 0s; }
+  .blob2 { width: 300px; height: 300px; background: #e8608a; bottom: -80px; right: -80px; animation-delay: 2s; }
+  .blob3 { width: 200px; height: 200px; background: #fbdde9; top: 40%; left: 60%; animation-delay: 4s; }
+
+  @keyframes blobFloat {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(20px,-30px) scale(1.05); }
+    66% { transform: translate(-15px,20px) scale(0.97); }
+  }
+
+  .login-card {
+    position: relative;
+    background: var(--card);
+    border-radius: 28px;
+    border: 1px solid var(--border2);
+    padding: 52px 48px;
+    width: 420px;
+    box-shadow: var(--shadow2);
+    animation: loginCardIn 0.7s cubic-bezier(0.34,1.56,0.64,1) both;
+    z-index: 2;
+  }
+  @keyframes loginCardIn {
+    from { opacity: 0; transform: translateY(40px) scale(0.94); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .login-logo {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 36px;
+  }
+  .login-logo-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, var(--pink2), var(--pink));
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .login-logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 600;
+    color: var(--text);
+  }
+  .login-logo-text span { color: var(--pink); }
+
+  .login-title { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .login-sub { color: var(--text2); font-size: 14px; margin-bottom: 32px; }
+
+  .input-group { margin-bottom: 20px; }
+  .input-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 8px; }
+  .input-group input {
+    width: 100%; padding: 14px 18px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .input-group input:focus {
+    border-color: var(--pink);
+    box-shadow: 0 0 0 4px rgba(232,96,138,0.12);
+  }
+
+  .btn-login {
+    width: 100%; padding: 15px;
+    background: linear-gradient(135deg, var(--pink2) 0%, var(--pink) 50%, var(--accent) 100%);
+    color: white;
+    border: none; border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 8px;
+    position: relative; overflow: hidden;
+  }
+  .btn-login::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255,255,255,0.1);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,96,138,0.4); }
+  .btn-login:hover::after { opacity: 1; }
+  .btn-login:active { transform: scale(0.98); }
+
+  .login-hint { text-align: center; color: var(--text3); font-size: 13px; margin-top: 20px; }
+  
+  .toggle-auth {
+    text-align: center; margin-top: 16px; color: var(--text2); font-size: 14px;
+  }
+  .toggle-auth a {
+    color: var(--pink); text-decoration: none; font-weight: 600; cursor: pointer;
+  }
+  .toggle-auth a:hover { text-decoration: underline; }
+  
+  #register-form { display: none; }
+  #register-form.show { display: block; }
+  #login-form.hide { display: none; }
+
+  /* ======= APP ======= */
+  #app { display: none; min-height: 100vh; }
+  #app.visible { display: block; }
+
+  /* Header */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex; align-items: center; gap: 16px;
+    height: 68px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 2px 16px rgba(200,80,120,0.06);
+  }
+  .header-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 600;
+    color: var(--text);
+  }
+  .header-logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--pink2), var(--pink));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .header-logo span { color: var(--pink); }
+  .header-spacer { flex: 1; }
+
+  .theme-toggle {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--pink4);
+    border: 1px solid var(--border);
+    cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+    color: var(--pink);
+  }
+  .theme-toggle:hover { background: var(--pink3); transform: scale(1.08); }
+
+  .header-user {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 500; color: var(--text2);
+  }
+  .avatar {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--pink2), var(--accent));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: white;
+  }
+  .logout-btn {
+    padding: 8px 16px;
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid rgba(200,80,80,0.2);
+    border-radius: 10px;
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+  }
+  .logout-btn:hover { background: rgba(200,80,80,0.15); }
+
+  /* Main layout */
+  main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px; margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    position: relative; overflow: hidden;
+    animation: fadeSlideUp 0.5s ease both;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: -30px; right: -30px;
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    opacity: 0.08;
+  }
+  .stat-card.pink::before { background: var(--pink); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.amber::before { background: var(--amber); }
+  .stat-card.blue::before { background: #4080e0; }
+  .stat-icon { font-size: 22px; margin-bottom: 12px; }
+  .stat-label { font-size: 12px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .stat-value { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; color: var(--text); }
+  .stat-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Controls row */
+  .controls-row {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .search-box {
+    flex: 1; min-width: 200px;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 10px 16px;
+    box-shadow: var(--shadow);
+  }
+  .search-box span { color: var(--text3); font-size: 16px; }
+  .search-box input {
+    flex: 1; border: none; background: transparent;
+    color: var(--text); font-size: 14px;
+    font-family: 'DM Sans', sans-serif; outline: none;
+  }
+  .search-box input::placeholder { color: var(--text3); }
+
+  select.filter-sel {
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+
+  .btn-add {
+    padding: 11px 22px;
+    background: linear-gradient(135deg, var(--pink2), var(--pink));
+    color: white; border: none; border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(232,96,138,0.3);
+    white-space: nowrap;
+  }
+  .btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,96,138,0.4); }
+  .btn-add:active { transform: scale(0.97); }
+
+  /* Payment table */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .table-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .table-title { font-size: 16px; font-weight: 600; }
+  .table-count { font-size: 13px; color: var(--text3); }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--card2);
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 12px; font-weight: 600;
+    color: var(--text3); text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    animation: rowIn 0.3s ease both;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--overlay); }
+  @keyframes rowIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  td { padding: 14px 20px; font-size: 14px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 12px; border-radius: 99px;
+    font-size: 12px; font-weight: 600;
+  }
+  .badge.paid { background: var(--green-bg); color: var(--green); }
+  .badge.pending { background: var(--amber-bg); color: var(--amber); }
+  .badge.overdue { background: var(--red-bg); color: var(--red); }
+
+  .category-badge {
+    display: inline-block; padding: 3px 10px;
+    border-radius: 8px; font-size: 12px; font-weight: 500;
+    background: var(--pink4); color: var(--pink);
+    border: 1px solid var(--border);
+  }
+
+  .amount-cell { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; }
+  .amount-cell.paid { color: var(--green); }
+  .amount-cell.pending { color: var(--amber); }
+  .amount-cell.overdue { color: var(--red); }
+
+  .action-btns { display: flex; gap: 8px; }
+  .btn-edit, .btn-del {
+    width: 32px; height: 32px;
+    border-radius: 8px; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; transition: transform 0.15s, background 0.15s;
+  }
+  .btn-edit { background: var(--pink4); color: var(--pink); }
+  .btn-del { background: var(--red-bg); color: var(--red); }
+  .btn-edit:hover { background: var(--pink3); transform: scale(1.1); }
+  .btn-del:hover { background: rgba(200,80,80,0.2); transform: scale(1.1); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 60px 24px;
+    color: var(--text3);
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 18px; color: var(--text2); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; }
+
+  /* Current bill section */
+  .bill-section {
+    background: linear-gradient(135deg, var(--pink3) 0%, var(--pink4) 100%);
+    border: 1px solid var(--border2);
+    border-radius: 24px; padding: 28px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+  .bill-icon-wrap {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--pink2), var(--pink));
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 4px 16px rgba(232,96,138,0.3);
+    flex-shrink: 0;
+  }
+  .bill-info { flex: 1; min-width: 160px; }
+  .bill-label { font-size: 13px; color: var(--text3); margin-bottom: 4px; font-weight: 500; }
+  .bill-amount { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; color: var(--pink); }
+  .bill-period { font-size: 14px; color: var(--text2); margin-top: 2px; }
+  .bill-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-pay-now {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--pink2), var(--accent));
+    color: white; border: none; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(232,96,138,0.35);
+  }
+  .btn-pay-now:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,96,138,0.45); }
+  .btn-edit-bill {
+    padding: 12px 20px;
+    background: var(--card);
+    color: var(--pink); border: 1px solid var(--border2);
+    border-radius: 12px; font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-edit-bill:hover { background: var(--pink3); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(6px);
+    z-index: 500; display: none;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: 28px;
+    padding: 40px;
+    width: 480px; max-width: 96vw;
+    max-height: 90vh; overflow-y: auto;
+    animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+    box-shadow: var(--shadow2);
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .modal-title { font-size: 20px; font-weight: 600; }
+  .modal-close {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--bg3); border: none; cursor: pointer;
+    color: var(--text2); font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: var(--red-bg); color: var(--red); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 8px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 12px 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; transition: border 0.2s, box-shadow 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--pink);
+    box-shadow: 0 0 0 3px rgba(232,96,138,0.12);
+  }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+
+  .modal-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; }
+  .btn-cancel {
+    padding: 12px 24px;
+    background: var(--bg3); color: var(--text2);
+    border: 1px solid var(--border); border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-cancel:hover { background: var(--pink3); color: var(--pink); }
+  .btn-save {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, var(--pink2), var(--pink));
+    color: white; border: none; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(232,96,138,0.3);
+  }
+  .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(232,96,138,0.4); }
+
+  /* Confirm delete modal */
+  .confirm-icon { font-size: 40px; text-align: center; margin-bottom: 16px; }
+  .confirm-text { text-align: center; color: var(--text2); font-size: 15px; margin-bottom: 24px; }
+  .btn-confirm-del {
+    flex: 1; padding: 12px;
+    background: var(--red-bg); color: var(--red);
+    border: 1px solid rgba(200,80,80,0.2); border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-confirm-del:hover { background: rgba(200,80,80,0.2); }
+
+  /* Bill modal */
+  .bill-modal-info {
+    background: var(--pink4);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px;
+    margin-bottom: 20px; text-align: center;
+    color: var(--text2); font-size: 14px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--pink3); border-radius: 99px; }
+
+  /* Year group */
+  .year-group { margin-bottom: 8px; }
+  .year-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px 8px;
+    background: var(--card2);
+    border-bottom: 1px solid var(--border);
+  }
+  .year-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; font-weight: 600; color: var(--pink);
+  }
+  .year-total { font-size: 13px; color: var(--text3); }
+
+  .no-results { padding: 40px; text-align: center; color: var(--text3); font-size: 14px; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    main { padding: 16px; }
+    header { padding: 0 16px; }
+    .login-card { padding: 36px 24px; width: 95vw; }
+    .form-row { grid-template-columns: 1fr; }
+    table { font-size: 13px; }
+    td, thead th { padding: 10px 12px; }
+    .bill-section { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login-page">
+  <div class="login-bg-blob blob1"></div>
+  <div class="login-bg-blob blob2"></div>
+  <div class="login-bg-blob blob3"></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🏠</div>
+      <div class="login-logo-text">Nest<span>Ledger</span></div>
+    </div>
+    
+    <!-- Login Form -->
+    <div id="login-form">
+      <div class="login-title">Welcome back</div>
+      <div class="login-sub">Sign in to manage your hostel payments</div>
+      <div class="input-group">
+        <label>Username</label>
+        <input type="text" id="login-user" placeholder="Enter your name">
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="••••••">
+      </div>
+      <button class="btn-login" onclick="doLogin()">Sign In →</button>
+      <div class="toggle-auth">
+        Don't have an account? <a onclick="toggleAuthForm()">Register</a>
+      </div>
+    </div>
+    
+    <!-- Register Form -->
+    <div id="register-form">
+      <div class="login-title">Create account</div>
+      <div class="login-sub">Register to manage your hostel payments</div>
+      <div class="input-group">
+        <label>Username</label>
+        <input type="text" id="reg-user" placeholder="Choose a username">
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="reg-pass" placeholder="••••••">
+      </div>
+      <div class="input-group">
+        <label>Confirm Password</label>
+        <input type="password" id="reg-confirm" placeholder="••••••">
+      </div>
+      <button class="btn-login" onclick="doRegister()">Register →</button>
+      <div class="toggle-auth">
+        Already have an account? <a onclick="toggleAuthForm()">Sign In</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="header-logo">
+      <div class="header-logo-icon">🏠</div>
+      Nest<span>Ledger</span>
+    </div>
+    <div class="header-spacer"></div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" id="theme-btn">🌙</button>
+    <div class="header-user">
+      <div class="avatar" id="user-avatar">R</div>
+      <span id="user-name">Resident</span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Logout</button>
+  </header>
+
+  <main>
+    <!-- Current Bill -->
+    <div class="bill-section" id="bill-section">
+      <div class="bill-icon-wrap">🧾</div>
+      <div class="bill-info">
+        <div class="bill-label">CURRENT MONTH BILL</div>
+        <div class="bill-amount" id="bill-amount-disp">₹0</div>
+        <div class="bill-period" id="bill-period-disp">No bill set</div>
+      </div>
+      <div class="bill-actions">
+        <button class="btn-pay-now" onclick="openPayNow()">✓ Mark as Paid</button>
+        <button class="btn-edit-bill" onclick="openBillModal()">✏️ Edit Bill</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card pink" style="animation-delay:0.1s">
+        <div class="stat-icon">💸</div>
+        <div class="stat-label">Total Paid</div>
+        <div class="stat-value" id="stat-total">₹0</div>
+        <div class="stat-sub" id="stat-count">0 payments</div>
+      </div>
+      <div class="stat-card green" style="animation-delay:0.15s">
+        <div class="stat-icon">✅</div>
+        <div class="stat-label">This Year</div>
+        <div class="stat-value" id="stat-year">₹0</div>
+        <div class="stat-sub">Paid in <span id="stat-year-label">2025</span></div>
+      </div>
+      <div class="stat-card amber" style="animation-delay:0.2s">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-value" id="stat-pending">₹0</div>
+        <div class="stat-sub" id="stat-pending-count">0 payments</div>
+      </div>
+      <div class="stat-card blue" style="animation-delay:0.25s">
+        <div class="stat-icon">📅</div>
+        <div class="stat-label">Last Payment</div>
+        <div class="stat-value" id="stat-last-amt">—</div>
+        <div class="stat-sub" id="stat-last-date">No record</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-row">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" placeholder="Search payments..." id="search-input" oninput="renderTable()">
+      </div>
+      <select class="filter-sel" id="filter-year" onchange="renderTable()">
+        <option value="">All Years</option>
+      </select>
+      <select class="filter-sel" id="filter-status" onchange="renderTable()">
+        <option value="">All Status</option>
+        <option value="paid">Paid</option>
+        <option value="pending">Pending</option>
+        <option value="overdue">Overdue</option>
+      </select>
+      <select class="filter-sel" id="filter-cat" onchange="renderTable()">
+        <option value="">All Categories</option>
+        <option value="rent">Rent</option>
+        <option value="electricity">Electricity</option>
+      </select>
+      <button class="btn-add" onclick="openAddModal()">＋ Add Payment</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="table-title">Payment History</div>
+        <div class="table-count" id="table-count">0 records</div>
+      </div>
+      <div id="table-body">
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <h3>No payments yet</h3>
+          <p>Click "Add Payment" to record your first payment.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ADD/EDIT PAYMENT MODAL -->
+<div class="modal-overlay" id="payment-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add Payment</div>
+      <button class="modal-close" onclick="closeModal('payment-modal')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Amount (₹)</label>
+        <input type="number" id="f-amount" placeholder="e.g. 5000" min="0">
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="f-date">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="f-category">
+          <option value="rent">Rent</option>
+          <option value="electricity">Electricity</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="f-status">
+          <option value="paid">Paid</option>
+          <option value="pending">Pending</option>
+          <option value="overdue">Overdue</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Month / Period</label>
+      <input type="text" id="f-period" placeholder="e.g. April 2025">
+    </div>
+    <div class="form-group">
+      <label>Payment Method</label>
+      <select id="f-method">
+        <option>UPI</option>
+        <option>Cash</option>
+        <option>Bank Transfer</option>
+        <option>Cheque</option>
+        <option>Online</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Electricity Units (optional)</label>
+      <input type="number" id="f-units" placeholder="Units consumed">
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <textarea id="f-notes" placeholder="Any additional notes..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('payment-modal')">Cancel</button>
+      <button class="btn-save" onclick="savePayment()">Save Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal" style="max-width:360px">
+    <div class="confirm-icon">🗑️</div>
+    <div class="modal-title" style="text-align:center;margin-bottom:8px">Delete Payment?</div>
+    <div class="confirm-text">This will permanently remove the payment record. This action cannot be undone.</div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('delete-modal')" style="flex:1">Cancel</button>
+      <button class="btn-confirm-del" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- BILL MODAL -->
+<div class="modal-overlay" id="bill-modal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title">Current Month Bill</div>
+      <button class="modal-close" onclick="closeModal('bill-modal')">✕</button>
+    </div>
+    <div class="bill-modal-info">Set your current monthly hostel bill so you can track what's due.</div>
+    <div class="form-group">
+      <label>Bill Amount (₹)</label>
+      <input type="number" id="b-amount" placeholder="e.g. 6500" min="0">
+    </div>
+    <div class="form-group">
+      <label>Billing Period</label>
+      <input type="text" id="b-period" placeholder="e.g. April 2025">
+    </div>
+    <div class="form-group">
+      <label>Due Date</label>
+      <input type="date" id="b-due">
+    </div>
+    <div class="form-group">
+      <label>Includes</label>
+      <input type="text" id="b-includes" placeholder="e.g. Rent + Electricity + Water">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('bill-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveBill()">Save Bill</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  loadPayments();
+// ===== DATA =====
+let payments = [];
+let currentBill = null;
+let editingId = null;
+let deletingId = null;
+let userName = 'Resident';
+
+const STORAGE_KEY = 'nestledger_payments';
+const BILL_KEY = 'nestledger_bill';
+const USER_KEY = 'nestledger_user';
+const THEME_KEY = 'nestledger_theme';
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payments));
+    localStorage.setItem(BILL_KEY, JSON.stringify(currentBill));
+  } catch(e) {}
+}
+
+function load() {
+  try {
+    const p = localStorage.getItem(STORAGE_KEY);
+    if (p) payments = JSON.parse(p);
+    const b = localStorage.getItem(BILL_KEY);
+    if (b) currentBill = JSON.parse(b);
+    const u = localStorage.getItem(USER_KEY);
+    if (u) userName = u;
+    const t = localStorage.getItem(THEME_KEY);
+    if (t) setTheme(t);
+  } catch(e) {}
+}
+
+function seedSampleData() {
+  const cats = ['rent','electricity'];
+  const methods = ['UPI','Cash','Bank Transfer'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const now = new Date();
+  // Past 2 years + current
+  for (let y = now.getFullYear() - 2; y <= now.getFullYear(); y++) {
+    const maxM = y === now.getFullYear() ? now.getMonth() : 11;
+    for (let m = 0; m <= maxM; m++) {
+      // Rent every month
+      payments.push({
+        id: genId(),
+        amount: 5500 + Math.floor(Math.random()*500),
+        date: `${y}-${String(m+1).padStart(2,'0')}-05`,
+        category: 'rent',
+        status: (y === now.getFullYear() && m === now.getMonth()) ? 'pending' : 'paid',
+        period: `${months[m]} ${y}`,
+        method: methods[Math.floor(Math.random()*methods.length)],
+        notes: ''
+      });
+      // Random electricity
+      if (m % 2 === 0) {
+        payments.push({
+          id: genId(),
+          amount: 300 + Math.floor(Math.random()*400),
+          date: `${y}-${String(m+1).padStart(2,'0')}-15`,
+          category: 'electricity',
+          status: 'paid',
+          period: `${months[m]} ${y}`,
+          method: methods[Math.floor(Math.random()*methods.length)],
+          notes: ''
+        });
+      }
+    }
+  }
+  payments.sort((a,b) => new Date(b.date) - new Date(a.date));
+  // Set current bill - check if current month is paid
+  const currentMonthPaid = payments.some(p => 
+    p.category === 'rent' && 
+    p.status === 'paid' &&
+    p.period === `${months[now.getMonth()]} ${now.getFullYear()}`
+  );
+  
+  let billDate = new Date(now);
+  let billMonth = now.getMonth();
+  let billYear = now.getFullYear();
+  
+  if (currentMonthPaid) {
+    // Move to next month if current month is paid
+    billDate.setMonth(billDate.getMonth() + 1);
+    billMonth = billDate.getMonth();
+    billYear = billDate.getFullYear();
+  }
+  
+  currentBill = {
+    amount: 6200,
+    period: `${months[billMonth]} ${billYear}`,
+    due: `${billYear}-${String(billMonth+1).padStart(2,'0')}-10`,
+    includes: 'Rent + Electricity'
+  };
+  save();
+}
+
+// ===== AUTH =====
+function toggleAuthForm() {
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  
+  if (loginForm.classList.contains('hide')) {
+document.getElementById('reg-confirm').addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+    loginForm.classList.remove('hide');
+    registerForm.classList.remove('show');
+  } else {
+    loginForm.classList.add('hide');
+    registerForm.classList.add('show');
+  }
+}
+
+async function doRegister() {
+  const username = document.getElementById('reg-user').value;
+  const password = document.getElementById('reg-pass').value;
+  const confirmPassword = document.getElementById('reg-confirm').value;
+
+  if (!username || !password || !confirmPassword) {
+    alert('Please fill in all fields');
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    alert('Passwords do not match');
+    return;
+  }
+
+  if (password.length < 4) {
+    alert('Password must be at least 4 characters');
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:5001/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert('Registration successful! Please sign in.');
+      toggleAuthForm();
+      document.getElementById('reg-user').value = '';
+      document.getElementById('reg-pass').value = '';
+      document.getElementById('reg-confirm').value = '';
+    } else {
+      alert(data.error || data || 'Registration failed');
+    }
+  } catch (err) {
+    console.error('Registration error:', err);
+    alert('Registration failed. Please try again.');
+  }
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-user').value;
+  const password = document.getElementById('login-pass').value;
+
+  if (!username || !password) {
+    alert('Please enter username and password');
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:5001/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem(USER_KEY, username);
+      userName = username;
+      
+      // Update display
+      document.getElementById('user-name').textContent = username;
+      document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
+      
+      document.getElementById('login-page').classList.add('hide');
+      setTimeout(() => {
+        document.getElementById('login-page').style.display = 'none';
+        document.getElementById('app').classList.add('visible');
+      }, 500);
+      
+      loadPayments();
+    } else {
+      alert(data.error || data || 'Login failed');
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('Login failed. Please try again.');
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('token');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-page').style.display = '';
+  setTimeout(() => document.getElementById('login-page').classList.remove('hide'), 10);
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pass').focus(); });
+
+// ===== THEME =====
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  setTheme(next);
+  localStorage.setItem(THEME_KEY, next);
+}
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('theme-btn').textContent = t === 'dark' ? '☀️' : '🌙';
+}
+
+// ===== BILL =====
+function updateBillDisplay() {
+  if (!currentBill || !currentBill.amount) {
+    document.getElementById('bill-amount-disp').textContent = '₹0';
+    document.getElementById('bill-period-disp').textContent = 'No bill set — click Edit Bill to set your monthly bill';
+    return;
+  }
+  document.getElementById('bill-amount-disp').textContent = '₹' + Number(currentBill.amount).toLocaleString('en-IN');
+  let txt = currentBill.period || '';
+  if (currentBill.due) txt += ' · Due: ' + new Date(currentBill.due).toLocaleDateString('en-IN', {day:'numeric',month:'short'});
+  if (currentBill.includes) txt += ' · ' + currentBill.includes;
+  document.getElementById('bill-period-disp').textContent = txt;
+}
+
+function openBillModal() {
+  if (currentBill) {
+    document.getElementById('b-amount').value = currentBill.amount || '';
+    document.getElementById('b-period').value = currentBill.period || '';
+    document.getElementById('b-due').value = currentBill.due || '';
+    document.getElementById('b-includes').value = currentBill.includes || 'Rent + Electricity';
+  } else {
+    document.getElementById('b-amount').value = '';
+    document.getElementById('b-period').value = '';
+    document.getElementById('b-due').value = '';
+    document.getElementById('b-includes').value = 'Rent + Electricity';
+  }
+  document.getElementById('bill-modal').classList.add('open');
+}
+
+function saveBill() {
+  const amt = document.getElementById('b-amount').value;
+  if (!amt) { alert('Please enter an amount.'); return; }
+  currentBill = {
+    amount: Number(amt),
+    period: document.getElementById('b-period').value,
+    due: document.getElementById('b-due').value,
+    includes: document.getElementById('b-includes').value || 'Rent + Electricity'
+  };
+  save();
+  updateBillDisplay();
+  closeModal('bill-modal');
+}
+
+function openPayNow() {
+  if (!currentBill || !currentBill.amount) { openBillModal(); return; }
+  // Pre-fill add modal with current bill info
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Record Bill Payment';
+  document.getElementById('f-amount').value = currentBill.amount;
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f-category').value = 'rent';
+  document.getElementById('f-status').value = 'paid';
+  document.getElementById('f-period').value = currentBill.period || '';
+  document.getElementById('f-method').value = 'UPI';
+  document.getElementById('f-notes').value = 'Monthly bill payment';
+  document.getElementById('payment-modal').classList.add('open');
+}
+
+// ===== PAYMENTS =====
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add Payment';
+  document.getElementById('f-amount').value = '';
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f-category').value = 'rent';
+  document.getElementById('f-status').value = 'paid';
+  document.getElementById('f-period').value = '';
+  document.getElementById('f-method').value = 'UPI';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('payment-modal').classList.add('open');
+}
+
+function openEditModal(id) {
+  const p = payments.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit Payment';
+  document.getElementById('f-amount').value = p.amount;
+  document.getElementById('f-date').value = p.date;
+  document.getElementById('f-category').value = p.category;
+  document.getElementById('f-status').value = p.status;
+  document.getElementById('f-period').value = p.period || '';
+  document.getElementById('f-method').value = p.method || 'UPI';
+  document.getElementById('f-notes').value = p.notes || '';
+  document.getElementById('payment-modal').classList.add('open');
+}
+
+async function savePayment() {
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    alert('Please login first');
+    return;
+  }
+
+  const type = document.getElementById('f-category').value;
+  const units = Number(document.getElementById('f-units').value) || 0;
+
+  const date = new Date(document.getElementById('f-date').value);
+  const month = date.toLocaleString('default', { month: 'long' });
+  const year = date.getFullYear();
+
+  const data = {
+    type,
+    units: type === 'electricity' ? units : undefined,
+    month,
+    year
+  };
+
+  try {
+    const res = await fetch('http://localhost:5001/api/payments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+      closeModal('payment-modal');
+      loadPayments();
+      // Update bill to next month if this was a rent payment for current month
+      if (type === 'rent') {
+        updateBillToNextMonth(month, year);
+      }
+    } else {
+      const error = await res.json();
+      alert(error.error || error || 'Failed to save payment');
+    }
+  } catch (err) {
+    console.error('Save payment error:', err);
+    alert('Failed to save payment. Please try again.');
+  }
+}
+
+function updateBillToNextMonth(paidMonth, paidYear) {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const now = new Date();
+  const currentMonth = months[now.getMonth()];
+  const currentYear = now.getFullYear();
+  
+  // Check if the payment was for the current month
+  if (paidMonth === currentMonth && paidYear === currentYear) {
+    // Move to next month
+    let billDate = new Date(now);
+    billDate.setMonth(billDate.getMonth() + 1);
+    const nextMonth = billDate.getMonth();
+    const nextYear = billDate.getFullYear();
+    
+    currentBill = {
+      amount: currentBill.amount || 6200,
+      period: `${months[nextMonth]} ${nextYear}`,
+      due: `${nextYear}-${String(nextMonth+1).padStart(2,'0')}-10`,
+      includes: 'Rent + Electricity'
+    };
+    save();
+    updateBillDisplay();
+  }
+}
+
+async function loadPayments() {
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    payments = [];
+    updateAll();
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:5001/api/payments', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      payments = data.map(p => ({
+        id: p._id,
+        amount: p.amount,
+        date: p.createdAt ? new Date(p.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        category: p.type,
+        status: p.status,
+        period: `${p.month} ${p.year}`,
+        method: 'Online',
+        notes: p.units ? `${p.units} units` : ''
+      }));
+      updateAll();
+    } else {
+      console.error('Failed to load payments');
+      payments = [];
+      updateAll();
+    }
+  } catch (err) {
+    console.error('Load payments error:', err);
+    payments = [];
+    updateAll();
+  }
+}
+
+function openDeleteModal(id) {
+  deletingId = id;
+  document.getElementById('delete-modal').classList.add('open');
+}
+
+function confirmDelete() {
+  if (!deletingId) return;
+  payments = payments.filter(x => x.id !== deletingId);
+  deletingId = null;
+  save();
+  updateAll();
+  closeModal('delete-modal');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ===== RENDER =====
+function updateStats() {
+  const paid = payments.filter(p => p.status === 'paid');
+  const pending = payments.filter(p => p.status !== 'paid');
+  const year = new Date().getFullYear();
+  const thisYear = paid.filter(p => p.date && p.date.startsWith(year));
+  const totalPaid = paid.reduce((s,p) => s + p.amount, 0);
+  const totalPending = pending.reduce((s,p) => s + p.amount, 0);
+  const thisYearTotal = thisYear.reduce((s,p) => s + p.amount, 0);
+
+  document.getElementById('stat-total').textContent = '₹' + totalPaid.toLocaleString('en-IN');
+  document.getElementById('stat-count').textContent = paid.length + ' payments';
+  document.getElementById('stat-year').textContent = '₹' + thisYearTotal.toLocaleString('en-IN');
+  document.getElementById('stat-year-label').textContent = year;
+  document.getElementById('stat-pending').textContent = '₹' + totalPending.toLocaleString('en-IN');
+  document.getElementById('stat-pending-count').textContent = pending.length + ' payments';
+
+  const last = paid[0];
+  if (last) {
+    document.getElementById('stat-last-amt').textContent = '₹' + last.amount.toLocaleString('en-IN');
+    document.getElementById('stat-last-date').textContent = new Date(last.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  } else {
+    document.getElementById('stat-last-amt').textContent = '—';
+    document.getElementById('stat-last-date').textContent = 'No record';
+  }
+
+  // Update year filter
+  const years = [...new Set(payments.map(p => p.date ? p.date.slice(0,4) : ''))].filter(Boolean).sort((a,b)=>b-a);
+  const sel = document.getElementById('filter-year');
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="">All Years</option>' + years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  if (curVal) sel.value = curVal;
+}
+
+function renderTable() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const fy = document.getElementById('filter-year').value;
+  const fs = document.getElementById('filter-status').value;
+  const fc = document.getElementById('filter-cat').value;
+
+  let filtered = payments.filter(p => {
+    const matchQ = !q || (p.category+p.period+p.amount+p.notes+p.method).toLowerCase().includes(q);
+    const matchY = !fy || (p.date && p.date.startsWith(fy));
+    const matchS = !fs || p.status === fs;
+    const matchC = !fc || p.category === fc;
+    return matchQ && matchY && matchS && matchC;
+  });
+
+  document.getElementById('table-count').textContent = filtered.length + ' record' + (filtered.length !== 1 ? 's' : '');
+
+  if (filtered.length === 0) {
+    document.getElementById('table-body').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>No payments found</h3>
+        <p>Try adjusting your filters or search term.</p>
+      </div>`;
+    return;
+  }
+
+  // Group by year
+  const byYear = {};
+  filtered.forEach(p => {
+    const y = p.date ? p.date.slice(0,4) : 'Unknown';
+    if (!byYear[y]) byYear[y] = [];
+    byYear[y].push(p);
+  });
+
+  const sortedYears = Object.keys(byYear).sort((a,b) => b - a);
+  let html = '<table><thead><tr><th>Date</th><th>Period</th><th>Category</th><th>Method</th><th>Status</th><th>Amount</th><th>Actions</th></tr></thead><tbody>';
+
+  sortedYears.forEach(y => {
+    const rows = byYear[y];
+    const yearTotal = rows.reduce((s,r) => s + r.amount, 0);
+    html += `</tbody></table><div class="year-header"><div class="year-label">${y}</div><div class="year-total">₹${yearTotal.toLocaleString('en-IN')} · ${rows.length} payments</div></div><table><tbody>`;
+    rows.forEach((p, i) => {
+      const statusMap = { paid: '✓ Paid', pending: '⏳ Pending', overdue: '⚠ Overdue' };
+      const delay = Math.min(i * 0.03, 0.3);
+      html += `<tr style="animation-delay:${delay}s">
+        <td>${new Date(p.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</td>
+        <td style="color:var(--text2)">${p.period || '—'}</td>
+        <td><span class="category-badge">${p.category}</span></td>
+        <td style="color:var(--text3);font-size:13px">${p.method || '—'}</td>
+        <td><span class="badge ${p.status}">${statusMap[p.status] || p.status}</span></td>
+        <td><span class="amount-cell ${p.status}">₹${p.amount.toLocaleString('en-IN')}</span></td>
+        <td><div class="action-btns">
+          <button class="btn-edit" onclick="openEditModal('${p.id}')" title="Edit">✏️</button>
+          <button class="btn-del" onclick="openDeleteModal('${p.id}')" title="Delete">🗑️</button>
+        </div></td>
+      </tr>`;
+    });
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('table-body').innerHTML = html;
+}
+
+function updateAll() {
+  updateStats();
+  updateBillDisplay();
+  renderTable();
+}
+
+// ===== INIT =====
+load();
+document.addEventListener('DOMContentLoaded', () => {
+  // Pre-load theme
+  const t = localStorage.getItem(THEME_KEY);
+  if (t) setTheme(t);
+});
+</script>
+</body>
+</html>
